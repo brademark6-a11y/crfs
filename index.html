@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>CRFS TRADING · Dela Costa 6, Sta. Maria, Bulacan | Pro Edition</title>
+    
+    <!-- Premium Fonts: Clean, modern, no emoji background issues -->
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* ========== RESET & GLOBAL ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-deep: #0a5c2e;
+            --primary-strong: #228B4C;
+            --primary-soft: #2e9c5a;
+            --primary-glow: #2ecc71;
+            --gold-accent: #F5B042;
+            --gold-dark: #E67E22;
+            --route-red: #E53E3E;
+            --dark-charcoal: #1e2a2e;
+            --soft-gray: #5b6e6c;
+            --cream-bg: #FFFCF5;
+            --border-light: #eef2f5;
+            --card-bg: #ffffff;
+            --shadow-sm: 0 2px 6px rgba(0,0,0,0.03);
+            --shadow-md: 0 8px 20px rgba(0,0,0,0.06);
+            --shadow-lg: 0 18px 30px -12px rgba(0,0,0,0.12);
+            --shadow-xl: 0 28px 40px -14px rgba(0,0,0,0.18);
+            --radius-card: 24px;
+            --radius-sm: 14px;
+        }
+
+        body {
+            font-family: 'Satoshi', 'Inter', system-ui, -apple-system, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #f6f9f4;
+            overflow: hidden;
+            font-weight: 500;
+            color: #1c2c28;
+            letter-spacing: -0.01em;
+        }
+
+        /* ========== TYPOGRAPHY REFINEMENTS ========== */
+        h1, h2, h3, .logo-text h1, .sidebar-header h3 {
+            font-family: 'Satoshi', 'Inter', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-text h1 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFF6E0, #FFE5B4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: none;
+        }
+
+        .logo-text p {
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            opacity: 0.85;
+        }
+
+        /* ========== HEADER (SLEEK) ========== */
+        .crfs-header {
+            background: linear-gradient(125deg, #0a3518 0%, #146b32 100%);
+            color: white;
+            padding: 14px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            border-bottom: 3px solid var(--gold-accent);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            background: radial-gradient(circle at 30% 35%, #FFE0A3, #F5A623);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .stats-badge {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(12px);
+            padding: 8px 24px;
+            border-radius: 60px;
+            display: flex;
+            gap: 24px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .btn-location {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            color: white;
+            cursor: pointer;
+        }
+
+        .btn-location:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        /* ========== TABS (MODERN) ========== */
+        .clinic-tabs {
+            background: white;
+            padding: 14px 28px;
+            display: flex;
+            gap: 14px;
+            border-bottom: 1px solid #eef2f0;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        .clinic-tab {
+            padding: 8px 24px;
+            border-radius: 48px;
+            background: #f0f4f2;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            color: #2c3e2f;
+        }
+
+        .clinic-tab.active {
+            background: var(--primary-strong);
+            color: white;
+            box-shadow: 0 6px 14px rgba(34, 139, 76, 0.3);
+            transform: scale(1.02);
+        }
+
+        .clinic-tab.derma.active {
+            background: #bc6f9c;
+        }
+
+        /* ========== CONTROL PANEL (CLEAN) ========== */
+        .control-panel {
+            background: #ffffffea;
+            backdrop-filter: blur(2px);
+            padding: 16px 28px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+            border-bottom: 1px solid #e9edea;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .input-group label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #4a655e;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            padding: 10px 16px;
+            border-radius: 16px;
+            border: 1.5px solid #e2e8e2;
+            font-family: 'Satoshi', monospace;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: white;
+            transition: 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-strong);
+            box-shadow: 0 0 0 3px rgba(34,139,76,0.15);
+            outline: none;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(105deg, var(--primary-strong), #0e5e30);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+            box-shadow: 0 8px 18px rgba(34,139,76,0.25);
+        }
+
+        /* ========== MAP CONTAINER ========== */
+        #map {
+            flex: 1;
+            width: 100%;
+            z-index: 1;
+            background: #d9e0d4;
+        }
+
+        /* ========== SIDEBAR (MODERN GLASS) ========== */
+        .info-sidebar {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            width: 420px;
+            max-width: calc(100vw - 48px);
+            background: rgba(255, 255, 248, 0.96);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            box-shadow: var(--shadow-xl);
+            z-index: 1100;
+            overflow: hidden;
+            border: 1px solid rgba(245, 176, 66, 0.35);
+            transition: all 0.2s;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(115deg, #146b36, #0a4522);
+            padding: 18px 24px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+        }
+
+        .sidebar-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .facility-list-container {
+            max-height: 52vh;
+            overflow-y: auto;
+            padding: 18px;
+        }
+
+        /* Scroll beauty */
+        .facility-list-container::-webkit-scrollbar {
+            width: 5px;
+        }
+        .facility-list-container::-webkit-scrollbar-track {
+            background: #e8ede8;
+            border-radius: 10px;
+        }
+        .facility-list-container::-webkit-scrollbar-thumb {
+            background: var(--primary-strong);
+            border-radius: 10px;
+        }
+
+        /* ========== FACILITY CARDS (MODERN, NO EMOJI BG ISSUES) ========== */
+        .facility-card {
+            background: white;
+            border-radius: 22px;
+            padding: 16px;
+            margin-bottom: 14px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            border-left: 5px solid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: 1px solid #f0f2ee;
+            border-left-width: 5px;
+        }
+
+        .facility-card:hover {
+            transform: translateX(-5px) translateY(-3px);
+            box-shadow: var(--shadow-md);
+            background: #fffef7;
+        }
+
+        .facility-card.poultry { border-left-color: #f5a623; }
+        .facility-card.piggery { border-left-color: #e67e22; }
+        .facility-card.layer { border-left-color: #27ae60; }
+        .facility-card.derma { border-left-color: #c4458c; }
+
+        .distance-badge {
+            background: #eef5ea;
+            color: var(--primary-strong);
+            padding: 5px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+
+        .route-btn-mini {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .route-btn-mini:hover {
+            background: #c53030;
+            transform: scale(0.97);
+        }
+
+        /* Toast notifications */
+        .toast-notification {
+            position: fixed;
+            bottom: 28px;
+            left: 28px;
+            background: #1e2a2a;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            z-index: 9999;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(8px);
+            background: rgba(20, 30, 25, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sync-status {
+            font-size: 0.7rem;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 12px;
+            border-radius: 30px;
+            margin-left: 8px;
+        }
+
+        /* Fix leaflet marker background (emoji clean) */
+        .leaflet-div-icon {
+            background: transparent !important;
+            border: none !important;
+        }
+
+        @media (max-width: 780px) {
+            .control-panel { flex-direction: column; align-items: stretch; }
+            .info-sidebar { width: calc(100% - 32px); right: 16px; left: 16px; bottom: 16px; }
+            .stats-badge { display: none; }
+            .crfs-header { padding: 12px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="crfs-header">
+    <div class="logo-area">
+        <div class="logo-icon">
+            <img src="https://static.wixstatic.com/media/d6c0df_28302e9412774911aa1f9aff7536693b~mv2.png/v1/crop/x_240,y_447,w_960,h_953/fill/w_83,h_82,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/d6c0df_28302e9412774911aa1f9aff7536693b~mv2.png" alt="CRFS Logo">
+        </div>
+        <div class="logo-text">
+            <h1>CRFS TRADING</h1>
+            <p>Dela Costa 6, Sta. Maria, Bulacan | Precision Agri-Map</p>
+        </div>
+    </div>
+    <div class="stats-badge">
+        <span><i class="fas fa-tractor"></i> <span id="totalFarmsCount">0</span> Farms</span>
+        <span><i class="fas fa-capsules"></i> <span id="totalClinicsCount">0</span> Clinics</span>
+        <span><i class="fas fa-route"></i> <span id="routeStatus">Active</span></span>
+        <span class="sync-status" id="syncStatus"><i class="fas fa-database"></i> Local</span>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <button class="btn-location" onclick="window.useMyLocation()"><i class="fas fa-location-dot"></i> My GPS</button>
+        <button class="btn-location" onclick="window.clearSelectedPin()"><i class="fas fa-eraser"></i> Clear Pin</button>
+        <button class="btn-location" onclick="window.syncFromSupabase()"><i class="fas fa-cloud-upload-alt"></i> Sync</button>
+    </div>
+</div>
+
+<div class="clinic-tabs">
+    <button class="clinic-tab active" data-type="all" onclick="window.filterByType('all')"><i class="fas fa-compass"></i> All</button>
+    <button class="clinic-tab" data-type="poultry" onclick="window.filterByType('poultry')"><i class="fas fa-drumstick-bite"></i> Poultry</button>
+    <button class="clinic-tab" data-type="piggery" onclick="window.filterByType('piggery')"><i class="fas fa-piggy-bank"></i> Piggery</button>
+    <button class="clinic-tab" data-type="layer" onclick="window.filterByType('layer')"><i class="fas fa-egg"></i> Layer</button>
+    <button class="clinic-tab derma" data-type="derma" onclick="window.filterByType('derma')"><i class="fas fa-capsules"></i> Derma</button>
+</div>
+
+<div class="control-panel">
+    <div class="input-group"><label><i class="fas fa-building"></i> FARM NAME</label><input type="text" id="facilityName" placeholder="e.g., San Vicente Poultry"></div>
+    <div class="input-group"><label><i class="fas fa-map-pin"></i> ADDRESS</label><input type="text" id="locationInput" placeholder="Dela Costa 6, Sta. Maria"></div>
+    <div class="input-group"><label><i class="fas fa-tag"></i> TYPE</label><select id="facilityType"><option value="farm-poultry">🐔 Poultry Farm</option><option value="farm-piggery">🐷 Piggery Farm</option><option value="farm-layer">🥚 Layer Farm</option><option value="clinic-derma">💊 Derma Clinic</option></select></div>
+    <div class="input-group"><label><i class="fas fa-user"></i> OWNER</label><input type="text" id="ownerName" placeholder="Full name"></div>
+    <div class="input-group"><label><i class="fas fa-phone"></i> CONTACT</label><input type="text" id="contactNumber" placeholder="+63 9xx xxx xxxx"></div>
+    <div class="input-group"><label><i class="fas fa-calendar"></i> SCHEDULE</label><input type="text" id="scheduleTime" placeholder="Mon-Fri 8am-5pm"></div>
+    <button class="btn btn-primary" onclick="window.addFacility()"><i class="fas fa-plus-circle"></i> Register</button>
+    <button class="btn btn-primary" onclick="window.drawRouteToAllFarms()" style="background:#C4452C;"><i class="fas fa-map-marked-alt"></i> Smart Route</button>
+</div>
+
+<div id="map"></div>
+
+<div class="info-sidebar" id="infoSidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-warehouse"></i> CRFS Command Center</h3>
+        <button onclick="window.toggleSidebar()" style="background:transparent; border:none; color:white; font-size:1.3rem; cursor:pointer;"><i class="fas fa-window-minimize"></i></button>
+    </div>
+    <div id="facilityListContainer" class="facility-list-container"></div>
+</div>
+
+<script>
+    // ==================== PERMANENT ADDRESS: DELA COSTA 6, STA. MARIA, BULACAN ====================
+    const HQ_LOCATION = { lat: 14.8351, lng: 121.0125, name: "CRFS TRADING HQ", address: "Dela Costa 6, Santa Maria, Bulacan" };
+    
+    // SUPABASE INIT (fixed - no null reference)
+    const SUPABASE_URL = 'https://maqoaywasttcprdmtjem.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_PTfGz0-AcuYw3KyygYRUZg_nVZvXyAB';
+    let supabaseClient = null;
+    try {
+        if (typeof supabase !== 'undefined' && supabase && supabase.createClient) {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("✅ Supabase client ready");
+        } else {
+            console.warn("⚠️ Supabase CDN pending");
+        }
+    } catch (e) { console.warn(e); supabaseClient = null; }
+
+    // GLOBALS
+    let facilities = [];
+    let map = null;
+    let markers = [];
+    let currentRouteControl = null;
+    let currentTypeFilter = "all";
+    let selectedLatLng = null;
+    let tempMarker = null;
+    let isMapReady = false;
+
+    function getEmojiFromType(type) {
+        if (type === 'farm-poultry') return '🐔';
+        if (type === 'farm-piggery') return '🐷';
+        if (type === 'farm-layer') return '🥚';
+        if (type === 'clinic-derma') return '💊';
+        return '📍';
+    }
+
+    // MAP INIT with correct HQ coordinates (Dela Costa 6)
+    function initMap() {
+        const container = document.getElementById('map');
+        if (!container) return;
+        map = L.map('map').setView([HQ_LOCATION.lat, HQ_LOCATION.lng], 15.2);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap & CartoDB',
+            maxZoom: 19
+        }).addTo(map);
+        L.control.scale({ metric: true }).addTo(map);
+
+        map.on('click', (e) => {
+            selectedLatLng = e.latlng;
+            if (tempMarker) map.removeLayer(tempMarker);
+            tempMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+                icon: L.divIcon({ html: '<div style="font-size: 38px; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.2));">📍</div>', iconSize: [36,36] })
+            }).addTo(map).bindPopup("📍 Pin dropped").openPopup();
+            showToast("📍 Pin placed — fill form");
+        });
+
+        // HQ Marker with correct address
+        const hqIcon = L.divIcon({ 
+            html: '<div style="font-size: 54px; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.3));">🏭</div>', 
+            iconSize: [52,52] 
+        });
+        L.marker([HQ_LOCATION.lat, HQ_LOCATION.lng], { icon: hqIcon }).addTo(map)
+            .bindPopup(`
+                <div style="font-family: 'Satoshi', sans-serif; min-width: 220px;">
+                    <b style="font-size:1rem;">🏭 CRFS TRADING</b><br>
+                    📍 Dela Costa 6, Santa Maria, Bulacan<br>
+                    <i>Main Operations Hub</i>
+                </div>
+            `)
+            .bindTooltip('🏭 CRFS TRADING Headquarters (Dela Costa 6)', { permanent: false });
+
+        isMapReady = true;
+        setTimeout(() => { if (map) map.invalidateSize(); }, 280);
+        loadLocalData();
+        setTimeout(() => syncFromSupabaseBackground(), 1000);
+        window.addEventListener('resize', () => map?.invalidateSize());
+    }
+
+    // LOCAL STORAGE with default farms near Dela Costa 6 area
+    function loadLocalDefaults() {
+        facilities = [
+            { id: 9001, name: "DermaVet Specialty Clinic", locationRaw: "Purok 3, San Vicente", facilityType: "clinic-derma", icon: "💊", coordinates: [14.8229, 120.9615], ownerName: "Dr. Sofia Mercado", contactNumber: "09178889999", scheduleTime: "Mon-Sat 8am-6pm" },
+            { id: 101, name: "San Vicente Poultry Integration", locationRaw: "Brgy. San Vicente, Sta. Maria", facilityType: "farm-poultry", icon: "🐔", coordinates: [14.8286, 120.9582], ownerName: "Ramon Garcia", contactNumber: "09171234567", scheduleTime: "Mon-Sat 7am-4pm" },
+            { id: 102, name: "Marilao Piggery Extension", locationRaw: "San Vicente Road", facilityType: "farm-piggery", icon: "🐷", coordinates: [14.8225, 120.9630], ownerName: "Luzviminda Santos", contactNumber: "09172345678", scheduleTime: "Daily 9am-5pm" },
+            { id: 103, name: "Golden Layer Farm", locationRaw: "Sitio Gulod, Sta. Maria", facilityType: "farm-layer", icon: "🥚", coordinates: [14.8203, 120.9567], ownerName: "Eduardo Dimagiba", contactNumber: "09173456789", scheduleTime: "Mon-Fri 8am-4pm" },
+            { id: 104, name: "Dela Costa Modern Poultry", locationRaw: "Dela Costa Subdivision", facilityType: "farm-poultry", icon: "🐔", coordinates: [14.8375, 121.0142], ownerName: "Cristina Reyes", contactNumber: "09174567890", scheduleTime: "8am-5pm" }
+        ];
+        saveLocalData();
+    }
+
+    function loadLocalData() {
+        const saved = localStorage.getItem('crfs_facilities_pro');
+        if (saved) { try { facilities = JSON.parse(saved); } catch(e) { loadLocalDefaults(); } } 
+        else { loadLocalDefaults(); }
+        renderAll();
+    }
+
+    function saveLocalData() { localStorage.setItem('crfs_facilities_pro', JSON.stringify(facilities)); updateStats(); }
+
+    // SUPABASE BACKGROUND
+    async function syncFromSupabaseBackground() {
+        if (!supabaseClient) { document.getElementById('syncStatus').innerHTML = '<i class="fas fa-database"></i> Local Only'; return; }
+        try {
+            document.getElementById('syncStatus').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            const { data, error } = await supabaseClient.from('farms').select('*').timeout(5000);
+            if (error) throw error;
+            if (data && data.length) {
+                const cloudItems = data.map(item => ({
+                    id: item.id, name: item.name, locationRaw: item.address, facilityType: item.farm_type || 'farm-poultry',
+                    icon: getEmojiFromType(item.farm_type || 'farm-poultry'), coordinates: [item.latitude, item.longitude],
+                    ownerName: item.owner_name || 'N/A', contactNumber: item.contact_number || 'N/A', scheduleTime: item.schedule || 'By appt'
+                }));
+                const existingIds = new Set(facilities.map(f => f.id));
+                const fresh = cloudItems.filter(f => !existingIds.has(f.id));
+                if (fresh.length) { facilities = [...fresh, ...facilities]; saveLocalData(); renderAll(); showToast(`☁️ +${fresh.length} cloud records`); }
+                document.getElementById('syncStatus').innerHTML = '<i class="fas fa-cloud"></i> Cloud Ready';
+            } else { await uploadLocalToSupabase(); }
+        } catch(err) { document.getElementById('syncStatus').innerHTML = '<i class="fas fa-cloud-off"></i> Offline'; }
+    }
+
+    async function uploadLocalToSupabase() {
+        if (!supabaseClient) return;
+        for (const farm of facilities) {
+            await supabaseClient.from('farms').upsert([{ id: farm.id, name: farm.name, address: farm.locationRaw, farm_type: farm.facilityType, latitude: farm.coordinates[0], longitude: farm.coordinates[1], owner_name: farm.ownerName, contact_number: farm.contactNumber, schedule: farm.scheduleTime, created_at: new Date().toISOString() }], { onConflict: 'id' });
+        }
+    }
+
+    // MARKERS (clean emoji, no background)
+    function getMarkerIcon(facility) {
+        let emoji = "📍";
+        if (facility.facilityType === 'farm-poultry') emoji = "🐔";
+        else if (facility.facilityType === 'farm-piggery') emoji = "🐷";
+        else if (facility.facilityType === 'farm-layer') emoji = "🥚";
+        else if (facility.facilityType === 'clinic-derma') emoji = "💊";
+        return L.divIcon({ html: `<div style="font-size: 34px; line-height: 1; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));">${emoji}</div>`, iconSize: [38,38], popupAnchor: [0, -12] });
+    }
+
+    function renderMapMarkers() {
+        if (!map) return;
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+        getFilteredFacilities().forEach(f => {
+            const marker = L.marker(f.coordinates, { icon: getMarkerIcon(f) }).addTo(map);
+            marker.bindPopup(`<div style="font-family: 'Satoshi';"><b>${f.icon} ${f.name}</b><br>📍 ${f.locationRaw}<br>👤 ${f.ownerName}<br>📞 ${f.contactNumber}<br><button onclick="window.flyTo(${f.id})" style="background:#228B4C; border:none; padding:4px 14px; border-radius:30px; color:white; margin-top:6px;">Focus</button></div>`);
+            markers.push(marker);
+        });
+    }
+
+    // ADD facility
+    async function addFacility() {
+        const name = document.getElementById('facilityName').value.trim();
+        const locRaw = document.getElementById('locationInput').value.trim();
+        const typeCode = document.getElementById('facilityType').value;
+        const owner = document.getElementById('ownerName').value.trim();
+        const contact = document.getElementById('contactNumber').value.trim();
+        const sched = document.getElementById('scheduleTime').value.trim();
+        if (!name) { showToast("⚠️ Name required"); return; }
+        let coords = null;
+        if (selectedLatLng) coords = [selectedLatLng.lat, selectedLatLng.lng];
+        else if (locRaw) { showToast("🔍 Geocoding..."); const geo = await geocodeLocation(locRaw); if (geo) coords = [geo.lat, geo.lng]; }
+        if (!coords) { alert("❌ Drop a pin, use GPS or address"); return; }
+        const newId = Date.now();
+        const newFacility = { id: newId, name, locationRaw: locRaw || "Pinned location", facilityType: typeCode, icon: getEmojiFromType(typeCode), coordinates: coords, ownerName: owner || 'Unspecified', contactNumber: contact || 'N/A', scheduleTime: sched || 'By appointment' };
+        facilities.unshift(newFacility);
+        saveLocalData();
+        if (supabaseClient) saveToSupabase(newFacility);
+        renderAll();
+        map.flyTo(coords, 15.8);
+        if (tempMarker) map.removeLayer(tempMarker);
+        selectedLatLng = null;
+        document.getElementById('facilityName').value = ''; document.getElementById('locationInput').value = ''; document.getElementById('ownerName').value = ''; document.getElementById('contactNumber').value = ''; document.getElementById('scheduleTime').value = '';
+        showToast(`✨ ${name} added`);
+    }
+
+    async function deleteFacility(id) {
+        if (confirm("Delete this entry?")) {
+            facilities = facilities.filter(f => f.id !== id);
+            saveLocalData();
+            if (supabaseClient) await supabaseClient.from('farms').delete().eq('id', id);
+            renderAll();
+            if (currentRouteControl) { map.removeControl(currentRouteControl); currentRouteControl = null; }
+            showToast("Removed");
+        }
+    }
+
+    async function geocodeLocation(loc) {
+        try {
+            const q = `${loc}, Santa Maria, Bulacan, Philippines`;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+            const data = await res.json();
+            if (data?.length) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+        } catch(e) {}
+        return null;
+    }
+
+    function getFilteredFacilities() {
+        if (currentTypeFilter === 'poultry') return facilities.filter(f => f.facilityType === 'farm-poultry');
+        if (currentTypeFilter === 'piggery') return facilities.filter(f => f.facilityType === 'farm-piggery');
+        if (currentTypeFilter === 'layer') return facilities.filter(f => f.facilityType === 'farm-layer');
+        if (currentTypeFilter === 'derma') return facilities.filter(f => f.facilityType === 'clinic-derma');
+        return facilities;
+    }
+
+    function renderFacilityList() {
+        const container = document.getElementById('facilityListContainer');
+        const filtered = getFilteredFacilities();
+        if (!filtered.length) { container.innerHTML = `<div style="padding:2rem;text-align:center;"><i class="fas fa-map-pin fa-2x"></i><p>No entries — tap map to start</p></div>`; return; }
+        let html = `<div style="background:#FEF6E0; border-radius:24px; padding:14px; margin-bottom:18px; text-align:center;">
+            <strong>🏭 CRFS TRADING HQ</strong><br>📍 Dela Costa 6, Santa Maria, Bulacan<br>
+            <button class="route-btn-mini" onclick="window.drawRouteToAllFarms()"><i class="fas fa-route"></i> Smart Trace Route</button>
+        </div>`;
+        filtered.forEach(f => {
+            const dist = calcDistance(HQ_LOCATION.lat, HQ_LOCATION.lng, f.coordinates[0], f.coordinates[1]).toFixed(1);
+            let typeClass = f.facilityType.includes('poultry') ? 'poultry' : f.facilityType.includes('piggery') ? 'piggery' : f.facilityType.includes('layer') ? 'layer' : 'derma';
+            html += `<div class="facility-card ${typeClass}" onclick="window.flyTo(${f.id})"><div style="display:flex; justify-content:space-between;"><strong><span style="font-size:1.3rem;">${f.icon}</span> ${f.name}</strong><span class="distance-badge">${dist} km</span></div><div style="font-size:0.75rem; margin:6px 0;"><i class="fas fa-location-dot"></i> ${f.locationRaw}</div><div><i class="fas fa-user"></i> ${f.ownerName} · <i class="fas fa-phone"></i> ${f.contactNumber}</div><div><i class="far fa-clock"></i> ${f.scheduleTime}</div><div style="margin-top:8px;"><button onclick="event.stopPropagation(); window.deleteFacility(${f.id})" style="background:#B53B2E; border:none; color:white; border-radius:40px; padding:5px 12px;">🗑️ Delete</button></div></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function drawRouteToAllFarms() {
+        if (currentRouteControl) map.removeControl(currentRouteControl);
+        const farms = facilities.filter(f => f.facilityType.startsWith('farm'));
+        if (!farms.length) { showToast("No farms to route"); return; }
+        const waypoints = [L.latLng(HQ_LOCATION.lat, HQ_LOCATION.lng), ...farms.map(f => L.latLng(f.coordinates[0], f.coordinates[1]))];
+        currentRouteControl = L.Routing.control({ waypoints, routeWhileDragging: false, show: false, lineOptions: { styles: [{ color: '#E53E3E', weight: 5 }] }, createMarker: () => null }).addTo(map);
+        currentRouteControl.on('routesfound', (e) => { const km = (e.routes[0].summary.totalDistance / 1000).toFixed(1); showToast(`🚜 Route: ${km} km`); document.getElementById('routeStatus').innerHTML = `${km}km`; });
+        map.fitBounds(L.latLngBounds(waypoints), { padding: [45,45] });
+    }
+
+    function flyTo(id) { const f = facilities.find(f => f.id === id); if (f && map) map.flyTo(f.coordinates, 16.5); }
+    function filterByType(type) { currentTypeFilter = type; document.querySelectorAll('.clinic-tab').forEach(t => t.classList.remove('active')); document.querySelector(`.clinic-tab[data-type="${type}"]`)?.classList.add('active'); renderAll(); if (currentRouteControl) { map.removeControl(currentRouteControl); currentRouteControl = null; } document.getElementById('routeStatus').innerHTML = 'Active'; }
+    function useMyLocation() { if (!navigator.geolocation) return; navigator.geolocation.getCurrentPosition(pos => { const { latitude: lat, longitude: lng } = pos.coords; selectedLatLng = { lat, lng }; if (tempMarker) map.removeLayer(tempMarker); tempMarker = L.marker([lat, lng], { icon: L.divIcon({ html: '<div style="font-size:40px;">📍</div>', iconSize: [36,36] }) }).addTo(map).bindPopup("Your location").openPopup(); map.setView([lat, lng], 16); showToast("GPS locked"); }); }
+    function clearSelectedPin() { selectedLatLng = null; if (tempMarker) map.removeLayer(tempMarker); tempMarker = null; showToast("Pin cleared"); }
+    function calcDistance(lat1, lng1, lat2, lng2) { const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLng = (lng2-lng1)*Math.PI/180; const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
+    function renderAll() { if (!isMapReady) return; renderMapMarkers(); renderFacilityList(); updateStats(); }
+    function updateStats() { document.getElementById('totalFarmsCount').innerText = facilities.filter(f => f.facilityType.startsWith('farm')).length; document.getElementById('totalClinicsCount').innerText = facilities.filter(f => f.facilityType === 'clinic-derma').length; }
+    function showToast(msg) { const t = document.createElement('div'); t.className = 'toast-notification'; t.innerHTML = `<i class="fas fa-check-circle"></i> ${msg}`; document.body.appendChild(t); setTimeout(() => t.remove(), 2800); }
+    function toggleSidebar() { const sb = document.getElementById('infoSidebar'); sb.style.display = sb.style.display === 'none' ? 'block' : 'none'; }
+    async function saveToSupabase(farmData) { if (!supabaseClient) return; try { await supabaseClient.from('farms').upsert([{ id: farmData.id, name: farmData.name, address: farmData.locationRaw, farm_type: farmData.facilityType, latitude: farmData.coordinates[0], longitude: farmData.coordinates[1], owner_name: farmData.ownerName, contact_number: farmData.contactNumber, schedule: farmData.scheduleTime }]); } catch(e){} }
+    window.syncFromSupabase = () => syncFromSupabaseBackground();
+
+    window.addFacility = addFacility; window.deleteFacility = deleteFacility; window.flyTo = flyTo; window.filterByType = filterByType; window.drawRouteToAllFarms = drawRouteToAllFarms; window.useMyLocation = useMyLocation; window.clearSelectedPin = clearSelectedPin; window.toggleSidebar = toggleSidebar;
+    document.addEventListener('DOMContentLoaded', initMap);
+</script>
+</body>
+</html>
